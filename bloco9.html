@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Estudos - CNU Bloco 9 (Corrigido)</title>
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --card-bg-color: #ffffff;
+            --text-color: #34495e;
+            --heading-color: #2c3e50;
+            --primary-color: #9b59b6; /* Cor primária roxa para diferenciar */
+            --secondary-color: #2ecc71;
+            --border-color: #ecf0f1;
+            --shadow-color: rgba(0,0,0,0.08);
+            --sidebar-bg: #ffffff;
+        }
+
+        body.dark-mode {
+            --bg-color: #2c3e50;
+            --card-bg-color: #34495e;
+            --text-color: #ecf0f1;
+            --heading-color: #ffffff;
+            --primary-color: #af7ac5;
+            --secondary-color: #27ae60;
+            --border-color: #4a627a;
+            --shadow-color: rgba(0,0,0,0.2);
+            --sidebar-bg: #2c3e50;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .layout-container { display: flex; max-width: 1400px; margin: 0 auto; gap: 20px; padding: 20px; }
+        .sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 20px; align-self: flex-start; }
+        .sidebar-widget { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 20px; transition: background-color 0.3s; }
+        .sidebar-widget h3 { color: var(--heading-color); font-size: 1.1em; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .nav-list { list-style: none; }
+        .nav-list a { text-decoration: none; color: var(--text-color); display: block; padding: 8px 0; font-size: 0.95em; border-radius: 5px; transition: background-color 0.2s, color 0.2s; }
+        .nav-list a:hover { color: var(--primary-color); }
+        .countdown-item { margin-bottom: 10px; }
+        .countdown-item span { display: block; font-weight: bold; color: var(--primary-color); font-size: 1.2em; }
+        .countdown-item small { font-size: 0.8em; color: var(--text-color); }
+        #pomodoro-display { font-size: 2.5em; font-weight: bold; text-align: center; color: var(--heading-color); margin-bottom: 15px; }
+        .pomodoro-controls button { width: 31%; padding: 8px; border: none; border-radius: 5px; color: #fff; cursor: pointer; font-size: 0.8em; }
+        #pomodoro-start { background-color: var(--secondary-color); }
+        #pomodoro-pause { background-color: #f39c12; }
+        #pomodoro-reset { background-color: #e74c3c; }
+        .main-content { flex-grow: 1; }
+        .main-header { background-color: var(--card-bg-color); padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 20px; transition: background-color 0.3s; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { color: var(--heading-color); font-size: 1.8em; }
+        .dark-mode-toggle { cursor: pointer; font-size: 1.5em; }
+        #overall-progress-text { font-size: 0.9em; margin-bottom: 5px; color: var(--text-color); }
+        .progress-bar-container { width: 100%; background-color: var(--border-color); border-radius: 5px; }
+        .progress-bar { height: 12px; background-color: var(--primary-color); border-radius: 5px; width: 0%; transition: width 0.5s ease-in-out; }
+        .eixo-section { background-color: var(--card-bg-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 20px; transition: background-color 0.3s; }
+        h2 { color: var(--heading-color); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px; }
+        h2 .priority { font-size: 0.8em; color: #fff; padding: 3px 8px; border-radius: 5px; vertical-align: middle; margin-left: 10px; }
+        .p-general { background-color: #27ae60; } .p-absolute { background-color: #e74c3c; } .p-high { background-color: #f39c12; } .p-medium { background-color: #8e44ad; }
+        .checklist li { padding: 12px 5px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; transition: background-color 0.2s; }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist li:hover { background-color: var(--bg-color); }
+        .checklist input[type="checkbox"] { margin-right: 15px; min-width: 18px; min-height: 18px; cursor: pointer; }
+        .checklist label { cursor: pointer; flex-grow: 1; }
+        .checklist .subject-title { font-weight: bold; color: var(--primary-color); margin-top: 20px; display: block; font-size: 1.1em;}
+        .checklist input[type="checkbox"]:checked + label { text-decoration: line-through; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="layout-container">
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h3>Navegação</h3>
+                <ul class="nav-list">
+                    <li><a href="#gerais">Conhecimentos Gerais</a></li>
+                    <li><a href="#eixo3">Eixo 3: Regulação</a></li>
+                    <li><a href="#eixo1">Eixo 1: Gestão e Políticas</a></li>
+                    <li><a href="#eixo2">Eixo 2: Legislação e Ética</a></li>
+                    <li><a href="#eixo4">Eixo 4: Tópicos Contemp.</a></li>
+                    <li><a href="#eixo5">Eixo 5: Língua Portuguesa</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-widget">
+                <h3>Contagem Regressiva</h3>
+                <div id="countdown-objetiva" class="countdown-item"><span>-- dias</span><small>Para a Prova Objetiva (05/OUT)</small></div>
+                <div id="countdown-discursiva" class="countdown-item"><span>-- dias</span><small>Para a Prova Discursiva (07/DEZ)</small></div>
+            </div>
+            <div class="sidebar-widget">
+                <h3>Timer Pomodoro 🍅</h3>
+                <div id="pomodoro-display">25:00</div>
+                <div class="pomodoro-controls">
+                    <button id="pomodoro-start">▶ Iniciar</button>
+                    <button id="pomodoro-pause">❚❚ Pausar</button>
+                    <button id="pomodoro-reset">■ Reset</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-top">
+                    <h1>Dashboard de Estudos: Bloco 9</h1>
+                    <div id="dark-mode-toggle" class="dark-mode-toggle" title="Alternar Modo Escuro/Claro">🌓</div>
+                </div>
+                <div id="overall-progress-text">Progresso Geral: 0%</div>
+                <div class="progress-bar-container"><div id="overall-progress-bar" class="progress-bar"></div></div>
+            </header>
+            
+            <div class="eixo-section" id="gerais">
+                <h2>Conhecimentos Gerais <span class="priority p-general">Base Comum</span></h2>
+                <ul class="checklist">
+                    <label class="subject-title">1. Língua Portuguesa</label>
+                    <li><input type="checkbox" id="b9_cg_lp_1"><label for="b9_cg_lp_1">Compreensão e interpretação de textos.</label></li>
+                    <li><input type="checkbox" id="b9_cg_lp_2"><label for="b9_cg_lp_2">Tipologia textual, Coesão e Coerência.</label></li>
+                    <li><input type="checkbox" id="b9_cg_lp_3"><label for="b9_cg_lp_3">Sintaxe, Pontuação, Concordância e Regência.</label></li>
+                    
+                    <label class="subject-title">2. Raciocínio Lógico-Quantitativo</label>
+                    <li><input type="checkbox" id="b9_cg_rlq_1"><label for="b9_cg_rlq_1">Estruturas lógicas e Lógica de argumentação.</label></li>
+                    <li><input type="checkbox" id="b9_cg_rlq_2"><label for="b9_cg_rlq_2">Porcentagem, Conjuntos e Análise de Gráficos.</label></li>
+                    
+                    <label class="subject-title">3. Noções de Direito</label>
+                    <li><input type="checkbox" id="b9_cg_dir_1"><label for="b9_cg_dir_1">Constitucional: Art. 5º e Art. 37 a 41.</label></li>
+                    <li><input type="checkbox" id="b9_cg_dir_2"><label for="b9_cg_dir_2">Administrativo: Princípios, Atos e Poderes.</label></li>
+                    <li><input type="checkbox" id="b9_cg_dir_3"><label for="b9_cg_dir_3">Leis: LAI (12.527/11) e LGPD (13.709/18).</label></li>
+
+                    <label class="subject-title">4. Noções de Administração e Gestão Pública</label>
+                    <li><input type="checkbox" id="b9_cg_adm_1"><label for="b9_cg_adm_1">Planejamento, organização e estrutura organizacional.</label></li>
+                    <li><input type="checkbox" id="b9_cg_adm_2"><label for="b9_cg_adm_2">Comunicação e atendimento ao público.</label></li>
+                    <li><input type="checkbox" id="b9_cg_adm_3"><label for="b9_cg_adm_3">Noções de gestão de pessoas, processos e arquivologia.</label></li>
+                </ul>
+            </div>
+
+            <div class="eixo-section" id="eixo3">
+                <h2>Eixo 3: Regulação e Agências Reguladoras <span class="priority p-absolute">Prioridade Absoluta</span></h2>
+                <ul class="checklist">
+                    <li><input type="checkbox" id="b9_e3_1"><label for="b9_e3_1">O papel regulador do Estado: conceitos e instrumentos.</label></li>
+                    <li><input type="checkbox" id="b9_e3_2"><label for="b9_e3_2">Agências Reguladoras: histórico, estrutura e funções.</label></li>
+                    <li><input type="checkbox" id="b9_e3_3"><label for="b9_e3_3">Boas práticas regulatórias: Análise de Impacto Regulatório (AIR).</label></li>
+                    <li><input type="checkbox" id="b9_e3_4"><label for="b9_e3_4">Participação e controle social na regulação.</label></li>
+                    <li><input type="checkbox" id="b9_e3_5"><label for="b9_e3_5">Noções de análise e gerenciamento de risco.</label></li>
+                    <li><input type="checkbox" id="b9_e3_6"><label for="b9_e3_6">Processo administrativo sancionador.</label></li>
+                </ul>
+            </div>
+
+            <div class="eixo-section" id="eixo1">
+                <h2>Eixo 1: Gestão Governamental e Políticas Públicas <span class="priority p-high">Prioridade Alta</span></h2>
+                <ul class="checklist">
+                    <li><input type="checkbox" id="b9_e1_1"><label for="b9_e1_1">Planejamento e gestão estratégica no setor público.</label></li>
+                    <li><input type="checkbox" id="b9_e1_2"><label for="b9_e1_2">Ciclo de políticas públicas: formulação, implementação e avaliação.</label></li>
+                    <li><input type="checkbox" id="b9_e1_3"><label for="b9_e1_3">Governança, accountability e transparência.</label></li>
+                    <li><input type="checkbox" id="b9_e1_4"><label for="b9_e1_4">Comunicação e atendimento ao público.</label></li>
+                </ul>
+            </div>
+
+            <div class="eixo-section" id="eixo2">
+                <h2>Eixo 2: Legislação e Ética na Administração Pública <span class="priority p-high">Prioridade Alta</span></h2>
+                 <ul class="checklist">
+                    <li><input type="checkbox" id="b9_e2_1"><label for="b9_e2_1">Regime Jurídico dos Servidores Públicos (Lei nº 8.112/1990).</label></li>
+                    <li><input type="checkbox" id="b9_e2_2"><label for="b9_e2_2">Ética no Setor Público (Decreto nº 1.171/1994).</label></li>
+                    <li><input type="checkbox" id="b9_e2_3"><label for="b9_e2_3">Improbidade Administrativa (Lei nº 8.429/1992).</label></li>
+                    <li><input type="checkbox" id="b9_e2_4"><label for="b9_e2_4">Lei de Acesso à Informação (Lei nº 12.527/2011).</label></li>
+                    <li><input type="checkbox" id="b9_e2_5"><label for="b9_e2_5">Lei Geral de Proteção de Dados Pessoais (LGPD - Lei nº 13.709/2018).</label></li>
+                </ul>
+            </div>
+
+            <div class="eixo-section" id="eixo4">
+                <h2>Eixo 4: Tópicos Contemporâneos <span class="priority p-medium">Prioridade Média</span></h2>
+                <ul class="checklist">
+                    <li><input type="checkbox" id="b9_e4_1"><label for="b9_e4_1">Transformação Digital e Governo Eletrônico.</label></li>
+                    <li><input type="checkbox" id="b9_e4_2"><label for="b9_e4_2">Desenvolvimento sustentável e Agenda 2030 (ODS).</label></li>
+                    <li><input type="checkbox" id="b9_e4_3"><label for="b9_e4_3">Desigualdades sociais e regionais no Brasil.</label></li>
+                </ul>
+            </div>
+
+            <div class="eixo-section" id="eixo5">
+                 <h2>Eixo 5: Língua Portuguesa e Redação Oficial <span class="priority p-medium">Prioridade Média</span></h2>
+                 <ul class="checklist">
+                    <li><input type="checkbox" id="b9_e5_1"><label for="b9_e5_1">Interpretação de textos e Tipologia textual.</label></li>
+                    <li><input type="checkbox" id="b9_e5_2"><label for="b9_e5_2">Coesão, coerência e argumentação.</label></li>
+                    <li><input type="checkbox" id="b9_e5_3"><label for="b9_e5_3">Concordância, Regência e Crase.</label></li>
+                    <li><input type="checkbox" id="b9_e5_4"><label for="b9_e5_4">Redação Oficial: Manual de Redação da Presidência da República.</label></li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DARK MODE ---
+            const toggleButton = document.getElementById('dark-mode-toggle');
+            const body = document.body;
+            function applyTheme(theme) { body.classList.toggle('dark-mode', theme === 'dark'); }
+            toggleButton.addEventListener('click', () => {
+                const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+            applyTheme(localStorage.getItem('theme') || 'light');
+
+            // --- PROGRESS & CHECKLISTS ---
+            const allCheckboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+            const overallProgressBar = document.getElementById('overall-progress-bar');
+            const overallProgressText = document.getElementById('overall-progress-text');
+            function updateOverallProgress() {
+                const total = allCheckboxes.length;
+                const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                const percentage = total > 0 ? (checkedCount / total) * 100 : 0;
+                overallProgressBar.style.width = percentage + '%';
+                overallProgressText.textContent = `Progresso Geral: ${Math.round(percentage)}%`;
+            }
+            function saveProgress() {
+                const progress = {};
+                allCheckboxes.forEach(cb => { progress[cb.id] = cb.checked; });
+                localStorage.setItem('cnuBloco9Progress', JSON.stringify(progress));
+            }
+            function loadProgress() {
+                const saved = JSON.parse(localStorage.getItem('cnuBloco9Progress'));
+                if (saved) {
+                    allCheckboxes.forEach(cb => { cb.checked = saved[cb.id] || false; });
+                }
+                updateOverallProgress();
+            }
+            allCheckboxes.forEach(cb => cb.addEventListener('change', () => {
+                updateOverallProgress();
+                saveProgress();
+            }));
+            loadProgress();
+            
+            // --- COUNTDOWN TIMERS ---
+            function setupCountdown(elementId, targetDateStr) {
+                const el = document.getElementById(elementId)?.querySelector('span');
+                if (!el) return;
+                const targetDate = new Date(targetDateStr).getTime();
+                 const update = () => {
+                    const distance = targetDate - new Date().getTime();
+                    if (distance < 0) {
+                        clearInterval(interval);
+                        el.textContent = "Realizada!";
+                        return;
+                    }
+                    el.textContent = `${Math.floor(distance / (1000 * 60 * 60 * 24))} dias`;
+                };
+                const interval = setInterval(update, 1000 * 60 * 60);
+                update();
+            }
+            setupCountdown('countdown-objetiva', '2025-10-05T00:00:00');
+            setupCountdown('countdown-discursiva', '2025-12-07T00:00:00');
+
+            // --- POMODORO TIMER ---
+            const pomodoroDisplay = document.getElementById('pomodoro-display');
+            let pomodoroInterval, pomodoroTimeLeft = 25 * 60;
+            const updatePomodoroDisplay = () => {
+                pomodoroDisplay.textContent = `${Math.floor(pomodoroTimeLeft / 60).toString().padStart(2, '0')}:${(pomodoroTimeLeft % 60).toString().padStart(2, '0')}`;
+            };
+            document.getElementById('pomodoro-start').addEventListener('click', () => {
+                clearInterval(pomodoroInterval);
+                pomodoroInterval = setInterval(() => {
+                    if (pomodoroTimeLeft > 0) {
+                        pomodoroTimeLeft--;
+                        updatePomodoroDisplay();
+                    } else {
+                        clearInterval(pomodoroInterval);
+                        alert("Pomodoro finalizado! Hora de uma pausa.");
+                    }
+                }, 1000);
+            });
+            document.getElementById('pomodoro-pause').addEventListener('click', () => clearInterval(pomodoroInterval));
+            document.getElementById('pomodoro-reset').addEventListener('click', () => {
+                clearInterval(pomodoroInterval);
+                pomodoroTimeLeft = 25 * 60;
+                updatePomodoroDisplay();
+            });
+            updatePomodoroDisplay();
+        });
+    </script>
+
+</body>
+</html>
